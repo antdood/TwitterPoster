@@ -66,8 +66,6 @@ def DownloadFile(file, cleanupBeforeDownloading = True):
         print(F'An error occurred: {error}')
         file = None
 
-    print(download_destination)
-
     return download_destination
 
 def PreDownloadCleanup(folder = "Downloads"):
