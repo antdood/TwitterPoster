@@ -28,10 +28,11 @@ class Credential:
 		if not cls.creds:
 			cls.creds = cls.InitCredentials()
 
-		if cls.creds and cls.creds.expired and cls.creds.refresh_token:
+		if cls.creds.expired and cls.creds.refresh_token:
 			cls.creds.refresh(Request())
 			
 		else:
+			print("Please manually go through the authorization process.")
 			flow = InstalledAppFlow.from_client_secrets_file('credentials.json', cls.SCOPES)
 			cls.creds = flow.run_local_server(port=0)
 

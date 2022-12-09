@@ -27,7 +27,7 @@ def GetFiles(folder_id):
         
         items = results.get('files', [])
         
-        print('Files count:')
+        print(f'Files count: {len{items}}')
         
         for item in items:
             print(u'{0} ({1})'.format(item['name'], item['id']))
