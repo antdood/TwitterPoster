@@ -2,10 +2,9 @@ from __future__ import print_function
 
 import os.path
 import io
+import shutil
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from Credentials import Credential
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
@@ -15,23 +14,10 @@ load_dotenv()
 SCOPES = [os.getenv('SCOPES')]
 folder_id = os.getenv('FOLDER_ID')
 
+creds = Credential.GetCredentials(SCOPES)
+download_destinations = []
+
 def GetFiles(folder_id):
-    creds = None
-    
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
     try:
         service = build('drive', 'v3', credentials=creds)
 
@@ -40,36 +26,27 @@ def GetFiles(folder_id):
                                             fields='nextPageToken, '
                                                    'files(id, name)',
                                             pageToken=None).execute()
+        
         items = results.get('files', [])
 
         if not items:
             print('No files found.')
+            
             return
+        
         print('Files:')
+        
         for item in items:
             print(u'{0} ({1})'.format(item['name'], item['id']))
+    
     except HttpError as error:
-
         print(f'An error occurred: {error}')
 
     return items
 
 def DownloadFile(file):
-    creds = None
-    
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+    if not os.path.exists("Downloads"):
+        os.makedirs('Downloads')
 
     try:
         service = build('drive', 'v3', credentials=creds)
@@ -81,18 +58,26 @@ def DownloadFile(file):
         file = io.FileIO(os.path.join('Downloads', f'{file_name}'), mode='wb')
         downloader = MediaIoBaseDownload(file, request)
         done = False
+        
         while done is False:
             status, done = downloader.next_chunk()
             print(F'Download {int(status.progress() * 100)}.')
+            download_destinations.append(file_name)
 
     except HttpError as error:
         print(F'An error occurred: {error}')
         file = None
 
-    return
+    return download_destinations
+
+def PreDownloadCleanup(folder = "Downloads"):
+    global download_destinations
+    download_destinations = []
+    shutil.rmtree(folder, ignore_errors=True)
 
 if __name__ == '__main__':
     items = GetFiles(folder_id)
 
+    PreDownloadCleanup()
     for item in items:
         DownloadFile(item)
