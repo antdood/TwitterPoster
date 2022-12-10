@@ -52,14 +52,14 @@ def DownloadFile(file, cleanupBeforeDownloading = True):
         file_id = file['id']
 
         request = service.files().get_media(fileId=file_id)
-        target_file = io.FileIO(os.path.join('Downloads', f'{file_name}'), mode='wb')
+        target_file = io.FileIO(os.path.abspath(os.path.join('Downloads', f'{file_name}')), mode='wb')
         downloader = MediaIoBaseDownload(target_file, request)
         done = False
         
         while done is False:
             status, done = downloader.next_chunk()
             print(F'Download {int(status.progress() * 100)}.')
-            download_destination = file_name
+            download_destination = os.path.abspath(os.path.join('Downloads', f'{file_name}'))
 
     except HttpError as error:
         print(F'An error occurred: {error}')
