@@ -23,7 +23,7 @@ def findAndTweetMedia():
 	with open(selected_media_path, 'rb') as selected_media:
 		twitterposter.tweet("", [selected_media])
 
-schedule.every().day.at("12:00").do(findAndTweetMedia())
+schedule.every().day.at("12:00").do(findAndTweetMedia)
 
 while True:
 	schedule.run_pending()
