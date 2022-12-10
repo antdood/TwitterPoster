@@ -2,7 +2,7 @@ import schedule
 import time
 import randomSelector
 import ImageDownloader
-import twitterPoster
+import twitterposter
 import os
 
 from dotenv import load_dotenv
@@ -20,8 +20,8 @@ def findAndTweetMedia():
 
 	selected_media_path = ImageDownloader.DownloadFile(selected_media_info)
 
-	with open(selected_media_path) as selected_media:
-		twitterPoster.tweet("", [selected_media])
+	with open(selected_media_path, 'rb') as selected_media:
+		twitterposter.tweet("", [selected_media])
 
 schedule.every().day.at("12:00").do(findAndTweetMedia())
 
