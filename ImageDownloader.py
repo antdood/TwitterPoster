@@ -52,23 +52,28 @@ def DownloadFile(file, cleanupBeforeDownloading = True):
         file_id = file['id']
 
         request = service.files().get_media(fileId=file_id)
-        target_file = io.FileIO(os.path.abspath(os.path.join('Downloads', f'{file_name}')), mode='wb')
+        target_file = io.FileIO(os.path.join(GetDownloadsFolderPath(), f'{file_name}'), mode='wb')
         downloader = MediaIoBaseDownload(target_file, request)
         done = False
         
         while done is False:
             status, done = downloader.next_chunk()
             print(F'Download {int(status.progress() * 100)}.')
-            download_destination = os.path.abspath(os.path.join('Downloads', f'{file_name}'))
+            download_destination = os.path.join(GetDownloadsFolderPath(), f'{file_name}')
 
     except HttpError as error:
         print(F'An error occurred: {error}')
         file = None
 
+    print(download_destination)
+
     return download_destination
 
-def PreDownloadCleanup(folder = "Downloads"):
-    shutil.rmtree(folder, ignore_errors=True)
+def PreDownloadCleanup():
+    shutil.rmtree(GetDownloadsFolderPath(), ignore_errors=True)
+
+def GetDownloadsFolderPath(folder = "Downloads"):
+    return os.path.abspath(folder)
 
 if __name__ == '__main__':
     items = GetFiles(os.getenv('FOLDER_ID'))
