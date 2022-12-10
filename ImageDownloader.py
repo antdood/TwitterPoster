@@ -11,7 +11,6 @@ from googleapiclient.http import MediaIoBaseDownload
 from dotenv import load_dotenv
 
 load_dotenv()
-folder_id = os.getenv('FOLDER_ID')
 
 def GetFiles(folder_id):
     creds = Credential.GetCredentials()
@@ -72,7 +71,7 @@ def PreDownloadCleanup(folder = "Downloads"):
     shutil.rmtree(folder, ignore_errors=True)
 
 if __name__ == '__main__':
-    items = GetFiles(folder_id)
+    items = GetFiles(os.getenv('FOLDER_ID'))
 
     for item in items:
         DownloadFile(item)

@@ -7,7 +7,6 @@ selection_history_file = "selectionHistory.txt"
 def selectRandom(selection_set):
 	weighted_selection_set = getSelectionWeights(selection_set)
 
-
 	zeroed_selection_set = zeroNegativeWeights(weighted_selection_set)
 
 	try:
@@ -50,7 +49,6 @@ def adjustWeights(selection, selection_weights):
 		selection_weights[candidate] += 1
 
 	return selection_weights
-
 
 def writeSelectionWeights(selection_weights):
 	with open(getSelectionHistoryPath(), "wb") as file:
