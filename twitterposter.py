@@ -32,18 +32,23 @@ class MediaUploader(object):
 		self.processing_info = None
 
 	def UploadInit(self):
-		media_type = 'video/mp4'
-		media_category = 'tweet_image'
+		file_type = self.GetExtension(self.video_file)
 
-		if self.IsGif(self.video_file):
-			media_type = 'image/gif'
-			media_category = 'tweet_gif'
+		type_dict = {
+			".gif": "image/gif"
+			, ".mp4": "video/mp4"
+		}
+
+		category_dict = {
+			".gif": "tweet_gif"
+			, ".mp4": "tweet_video"
+		}
 
 		request_data = {
 			'command': 'INIT'
-			, 'media_type': media_type
+			, 'media_type': type_dict.get(file_type, "video/mp4")
 			, 'total_bytes': self.total_bytes
-			, 'media_category': media_category
+			, 'media_category': category_dict.get(file_type, "tweet_image")
 		}
 
 		req = requests.post(url = MEDIA_ENDPOINT_URL, data = request_data, auth = oauth)
@@ -131,13 +136,10 @@ class MediaUploader(object):
 		self.processing_info = req.json().get('processing_info', None)
 		self.CheckStatus()
 
-	def IsGif(self, file):
+	def GetExtension(self, file):
 		file_name, file_extension = os.path.splitext(file.name)
 
-		if not file_extension == ".gif":
-			return False
-
-		return True
+		return file_extension
 
 	def GetMediaID(self):
 		return self.media_id
@@ -163,5 +165,5 @@ def tweet(text, medias):
 	print(f"tweet with {len(medias)} medias")
 
 if __name__ == '__main__':
-	with open(os.path.join("Downloads", "img_1160.gif"), 'rb') as media:
+	with open(os.path.join("Downloads", "test.gif"), 'rb') as media:
 		tweet('test upload', [media])
