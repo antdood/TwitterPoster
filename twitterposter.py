@@ -17,10 +17,12 @@ ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET")
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
 POST_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
-oauth = OAuth1(CONSUMER_KEY
-				, client_secret = CONSUMER_SECRET
-				, resource_owner_key = ACCESS_TOKEN
-				, resource_owner_secret = ACCESS_TOKEN_SECRET)
+oauth = OAuth1(
+			CONSUMER_KEY
+			, client_secret = CONSUMER_SECRET
+			, resource_owner_key = ACCESS_TOKEN
+			, resource_owner_secret = ACCESS_TOKEN_SECRET
+		)
 
 class MediaUploader(object):
 	def __init__(self, file):
@@ -30,14 +32,22 @@ class MediaUploader(object):
 		self.processing_info = None
 
 	def UploadInit(self):
+		media_type = 'video/mp4'
+		media_category = 'tweet_image'
+
+		if self.IsGif(self.video_file):
+			media_type = 'image/gif'
+			media_category = 'tweet_gif'
+
 		request_data = {
-			'command': 'INIT',
-			'media_type': 'video/mp4',
-			'total_bytes': self.total_bytes,
-			'media_category': 'tweet_image'
+			'command': 'INIT'
+			, 'media_type': media_type
+			, 'total_bytes': self.total_bytes
+			, 'media_category': media_category
 		}
 
-		req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, auth=oauth)
+		req = requests.post(url = MEDIA_ENDPOINT_URL, data = request_data, auth = oauth)
+
 		media_id = req.json()['media_id']
 
 		self.media_id = media_id
@@ -54,16 +64,16 @@ class MediaUploader(object):
 			print('APPEND')
 
 			request_data = {
-				'command': 'APPEND',
-				'media_id': self.media_id,
-				'segment_index': segment_id
+				'command': 'APPEND'
+				, 'media_id': self.media_id
+				, 'segment_index': segment_id
 			}
 
 			files = {
 				'media':chunk
 			}
 
-			req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, files=files, auth=oauth)
+			req = requests.post(url = MEDIA_ENDPOINT_URL, data = request_data, files = files, auth = oauth)
 
 			if req.status_code < 200 or req.status_code > 299:
 				print(req.status_code)
@@ -81,11 +91,11 @@ class MediaUploader(object):
 		print('FINALIZE')
 
 		request_data = {
-			'command': 'FINALIZE',
-			'media_id': self.media_id
+			'command': 'FINALIZE'
+			, 'media_id': self.media_id
 		}
 
-		req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, auth=oauth)
+		req = requests.post(url = MEDIA_ENDPOINT_URL, data = request_data, auth = oauth)
 
 		self.processing_info = req.json().get('processing_info', None)
 		self.CheckStatus()
@@ -112,14 +122,22 @@ class MediaUploader(object):
 		print('STATUS')
 
 		request_params = {
-			'command': 'STATUS',
-			'media_id': self.media_id
+			'command': 'STATUS'
+			, 'media_id': self.media_id
 		}
 
-		req = requests.get(url=MEDIA_ENDPOINT_URL, params=request_params, auth=oauth)
+		req = requests.get(url = MEDIA_ENDPOINT_URL, params = request_params, auth = oauth)
 	
 		self.processing_info = req.json().get('processing_info', None)
 		self.CheckStatus()
+
+	def IsGif(self, file):
+		file_name, file_extension = os.path.splitext(file.name)
+
+		if not file_extension == ".gif":
+			return False
+
+		return True
 
 	def GetMediaID(self):
 		return self.media_id
@@ -135,13 +153,15 @@ def tweet(text, medias):
 		print(uploader.GetMediaID())
 		media_ids_string += f"{uploader.GetMediaID()},"
 
-	request_data = {'status': text
-					, 'media_ids': media_ids_string}
+	request_data = {
+		'status': text
+		, 'media_ids': media_ids_string
+	}
 
 	req = requests.post(url = POST_TWEET_URL, data = request_data, auth = oauth)
 	
 	print(f"tweet with {len(medias)} medias")
 
 if __name__ == '__main__':
-	with open(os.path.join("Downloads", "test_img.png"), 'rb') as media:
+	with open(os.path.join("Downloads", "img_1160.gif"), 'rb') as media:
 		tweet('test upload', [media])
